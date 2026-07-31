@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Dash - Geometry Dash Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❤️ HEART DASH</h1>
+            <div class="score-board">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="high-score">High Score: <span id="highScore">0</span></div>
+                <div class="speed">Speed: <span id="speed">1.0</span>x</div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+        </div>
+
+        <div class="controls">
+            <p id="gameStatus">Press SPACE or CLICK to start</p>
+            <button id="startBtn" class="btn-start">START GAME</button>
+            <button id="restartBtn" class="btn-restart" style="display: none;">RESTART</button>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+                <li>Press <strong>SPACE</strong> or <strong>CLICK</strong> to make the heart jump</li>
+                <li>Avoid the obstacles (grey boxes and spikes)</li>
+                <li>Speed increases as you progress</li>
+                <li>The game gets harder over time!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
