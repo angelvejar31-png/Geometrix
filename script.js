@@ -2,6 +2,7 @@
 let audioContext;
 let lastJumpTime = 0;
 let lastObstacleSound = 0;
+let gameLoopId = null;
 
 function initAudio() {
     if (!audioContext) {
@@ -173,72 +174,106 @@ const levelConfigs = {
     }
 };
 
-// Menu event listeners
-document.querySelectorAll('.char-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedCharacter = btn.dataset.char;
+// Wait for DOM to be ready
+function setupEventListeners() {
+    // Menu event listeners
+    document.querySelectorAll('.char-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedCharacter = btn.dataset.char;
+        });
     });
-});
 
-document.querySelectorAll('.world-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        currentWorld = parseInt(btn.dataset.world);
+    document.querySelectorAll('.world-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentWorld = parseInt(btn.dataset.world);
+        });
     });
-});
 
-document.querySelectorAll('.level-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        currentLevel = parseInt(btn.dataset.level);
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            currentLevel = parseInt(btn.dataset.level);
+        });
     });
-});
 
-document.getElementById('playBtn').addEventListener('click', () => {
-    const nameInput = document.getElementById('playerName');
-    playerName = nameInput.value.trim() || 'Player';
-    
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'block';
-    document.getElementById('playerDisplay').textContent = playerName;
-    document.getElementById('worldDisplay').textContent = currentWorld;
-    
-    initAudio();
-    startGame();
-});
-
-document.getElementById('menuBtn').addEventListener('click', () => {
-    gameRunning = false;
-    gameOver = false;
-    score = 0;
-    currentLevel = 1;
-    obstacles = [];
-    document.getElementById('gameScreen').style.display = 'none';
-    document.getElementById('mainMenu').style.display = 'flex';
-});
-
-// Game event listeners
-document.getElementById('startBtn').addEventListener('click', startGame);
-document.getElementById('restartBtn').addEventListener('click', startGame);
-
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && gameRunning) {
-        e.preventDefault();
-        makeHeartJump();
+    const playBtn = document.getElementById('playBtn');
+    if (playBtn) {
+        playBtn.addEventListener('click', () => {
+            const nameInput = document.getElementById('playerName');
+            playerName = nameInput.value.trim() || 'Player';
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('playerDisplay').textContent = playerName;
+            document.getElementById('worldDisplay').textContent = currentWorld;
+            
+            initAudio();
+            startGame();
+        });
     }
-});
 
-canvas.addEventListener('click', () => {
-    if (!gameRunning && !gameOver) {
-        startGame();
-    } else if (gameRunning) {
-        makeHeartJump();
+    const menuBtn = document.getElementById('menuBtn');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            if (gameLoopId) {
+                cancelAnimationFrame(gameLoopId);
+                gameLoopId = null;
+            }
+            gameRunning = false;
+            gameOver = false;
+            score = 0;
+            currentLevel = 1;
+            obstacles = [];
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+        });
     }
-});
+
+    // Game event listeners
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+    }
+
+    const restartBtn = document.getElementById('restartBtn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', startGame);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && gameRunning) {
+            e.preventDefault();
+            makeHeartJump();
+        }
+    });
+
+    canvas.addEventListener('click', () => {
+        if (!gameRunning && !gameOver) {
+            startGame();
+        } else if (gameRunning) {
+            makeHeartJump();
+        }
+    });
+
+    // Initialize high score display
+    document.getElementById('highScore').textContent = highScore;
+    
+    // Select defaults
+    if (document.querySelectorAll('.char-btn').length > 0) {
+        document.querySelectorAll('.char-btn')[0].classList.add('selected');
+    }
+    if (document.querySelectorAll('.world-btn').length > 0) {
+        document.querySelectorAll('.world-btn')[0].classList.add('selected');
+    }
+    if (document.querySelectorAll('.level-btn').length > 0) {
+        document.querySelectorAll('.level-btn')[0].classList.add('selected');
+    }
+}
 
 function startGame() {
     gameRunning = true;
@@ -263,6 +298,12 @@ function startGame() {
     // Play level music
     playLevelMusic();
     
+    // Cancel previous loop if exists
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+    }
+    
+    // Start game loop
     gameLoop();
 }
 
@@ -518,12 +559,13 @@ function gameLoop() {
     drawHeart(heart.x, heart.y, heart.width);
     
     if (gameRunning || gameOver) {
-        requestAnimationFrame(gameLoop);
+        gameLoopId = requestAnimationFrame(gameLoop);
     }
 }
 
-// Initialize
-document.getElementById('highScore').textContent = highScore;
-document.querySelectorAll('.char-btn')[0].classList.add('selected');
-document.querySelectorAll('.world-btn')[0].classList.add('selected');
-document.querySelectorAll('.level-btn')[0].classList.add('selected');
+// Setup when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEventListeners);
+} else {
+    setupEventListeners();
+}
