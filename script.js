@@ -1,3 +1,76 @@
+// Audio context for sound effects
+let audioContext;
+let lastJumpTime = 0;
+let lastObstacleSound = 0;
+
+function initAudio() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playJumpSound() {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    if (now - lastJumpTime < 0.1) return;
+    lastJumpTime = now;
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    
+    osc.start(now);
+    osc.stop(now + 0.1);
+}
+
+function playLevelMusic() {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    const frequency = 200 + (currentLevel * 50);
+    const duration = 0.3;
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.frequency.setValueAtTime(frequency, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+    
+    osc.start(now);
+    osc.stop(now + duration);
+}
+
+function playObstacleSound() {
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    if (now - lastObstacleSound < 0.15) return;
+    lastObstacleSound = now;
+    
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    
+    osc.start(now);
+    osc.stop(now + 0.1);
+}
+
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -9,8 +82,21 @@ let score = 0;
 let highScore = localStorage.getItem('heartDashHighScore') || 0;
 let speed = 1;
 let currentLevel = 1;
+let currentWorld = 1;
 let levelThreshold = 150;
 let obstaclesInLevel = 0;
+let selectedCharacter = 'heart';
+let playerName = 'Player';
+let baseSpeed = 1;
+
+// Character emojis
+const characters = {
+    heart: '❤️',
+    star: '⭐',
+    diamond: '💎',
+    cube: '🟦',
+    rocket: '🚀'
+};
 
 // Heart object
 const heart = {
@@ -36,10 +122,17 @@ let obstacles = [];
 let obstacleSpawnRate = 120;
 let obstacleCounter = 0;
 
+// World configurations
+const worldConfigs = {
+    1: { name: '🌳 Bosque', bgColor: '#87ceeb', groundColor: '#2d5016' },
+    2: { name: '🔥 Volcán', bgColor: '#FF4500', groundColor: '#8B0000' },
+    3: { name: '❄️ Hielo', bgColor: '#E0FFFF', groundColor: '#4A90E2' }
+};
+
 // Level configurations
 const levelConfigs = {
     1: {
-        name: '🟩 NIVEL 1: Iniciante',
+        name: '🟩 Iniciante',
         speed: 1,
         spawnRate: 120,
         obstacleTypes: ['box', 'spike'],
@@ -47,7 +140,7 @@ const levelConfigs = {
         backgroundColor: '#87ceeb'
     },
     2: {
-        name: '🟨 NIVEL 2: Intermedio',
+        name: '🟨 Intermedio',
         speed: 1.3,
         spawnRate: 100,
         obstacleTypes: ['box', 'spike', 'double'],
@@ -55,7 +148,7 @@ const levelConfigs = {
         backgroundColor: '#FFD700'
     },
     3: {
-        name: '🟧 NIVEL 3: Desafiante',
+        name: '🟧 Desafiante',
         speed: 1.6,
         spawnRate: 80,
         obstacleTypes: ['box', 'spike', 'double', 'platform'],
@@ -63,7 +156,7 @@ const levelConfigs = {
         backgroundColor: '#FFA500'
     },
     4: {
-        name: '🔴 NIVEL 4: Experto',
+        name: '🔴 Experto',
         speed: 1.9,
         spawnRate: 60,
         obstacleTypes: ['box', 'spike', 'double', 'platform', 'moving'],
@@ -71,7 +164,7 @@ const levelConfigs = {
         backgroundColor: '#FF6347'
     },
     5: {
-        name: '⚫ NIVEL 5: Imposible',
+        name: '⚫ Imposible',
         speed: 2.2,
         spawnRate: 50,
         obstacleTypes: ['box', 'spike', 'double', 'platform', 'moving'],
@@ -80,9 +173,57 @@ const levelConfigs = {
     }
 };
 
-// Event listeners
+// Menu event listeners
+document.querySelectorAll('.char-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedCharacter = btn.dataset.char;
+    });
+});
+
+document.querySelectorAll('.world-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        currentWorld = parseInt(btn.dataset.world);
+    });
+});
+
+document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        currentLevel = parseInt(btn.dataset.level);
+    });
+});
+
+document.getElementById('playBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('playerName');
+    playerName = nameInput.value.trim() || 'Player';
+    
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    document.getElementById('playerDisplay').textContent = playerName;
+    document.getElementById('worldDisplay').textContent = currentWorld;
+    
+    initAudio();
+    startGame();
+});
+
+document.getElementById('menuBtn').addEventListener('click', () => {
+    gameRunning = false;
+    gameOver = false;
+    score = 0;
+    currentLevel = 1;
+    obstacles = [];
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'flex';
+});
+
+// Game event listeners
 document.getElementById('startBtn').addEventListener('click', startGame);
-document.getElementById('restartBtn').addEventListener('click', restartGame);
+document.getElementById('restartBtn').addEventListener('click', startGame);
 
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && gameRunning) {
@@ -103,35 +244,39 @@ function startGame() {
     gameRunning = true;
     gameOver = false;
     score = 0;
-    currentLevel = 1;
+    
+    // IMPORTANTE: Reiniciar la velocidad a la del nivel seleccionado (sin acumulación)
+    baseSpeed = levelConfigs[currentLevel].speed;
+    speed = baseSpeed;
+    
     obstacles = [];
     heart.velocityY = 0;
     heart.y = canvas.height - 100;
+    obstacleSpawnRate = levelConfigs[currentLevel].spawnRate;
     obstaclesInLevel = 0;
     updateLevelInfo();
     
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('restartBtn').style.display = 'none';
-    document.getElementById('gameStatus').textContent = levelConfigs[currentLevel].name;
+    document.getElementById('gameStatus').textContent = `${levelConfigs[currentLevel].name} - ¡Comenzó!`;
+    
+    // Play level music
+    playLevelMusic();
     
     gameLoop();
-}
-
-function restartGame() {
-    startGame();
 }
 
 function makeHeartJump() {
     if (!heart.jumping) {
         heart.velocityY = heart.jumpPower;
         heart.jumping = true;
+        playJumpSound();
     }
 }
 
 function drawHeart(x, y, size) {
-    ctx.fillStyle = '#ff1744';
     ctx.font = `${size}px Arial`;
-    ctx.fillText('❤️', x - size / 2, y + size / 2);
+    ctx.fillText(characters[selectedCharacter], x - size / 2, y + size / 2);
 }
 
 function drawObstacle(obstacle) {
@@ -152,7 +297,6 @@ function drawObstacle(obstacle) {
         ctx.fill();
     }
     else if (obstacle.type === 'double') {
-        // Dos cajas pequeñas
         ctx.fillStyle = '#9933FF';
         ctx.fillRect(obstacle.x, obstacle.y, obstacle.width / 2 - 5, obstacle.height);
         ctx.fillRect(obstacle.x + obstacle.width / 2 + 5, obstacle.y, obstacle.width / 2 - 5, obstacle.height);
@@ -162,7 +306,6 @@ function drawObstacle(obstacle) {
         ctx.strokeRect(obstacle.x + obstacle.width / 2 + 5, obstacle.y, obstacle.width / 2 - 5, obstacle.height);
     }
     else if (obstacle.type === 'platform') {
-        // Plataforma flotante
         ctx.fillStyle = '#00CCFF';
         ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
         ctx.strokeStyle = '#0099CC';
@@ -170,7 +313,6 @@ function drawObstacle(obstacle) {
         ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
     }
     else if (obstacle.type === 'moving') {
-        // Bloque que se mueve
         ctx.fillStyle = '#FF00FF';
         obstacle.yOffset = Math.sin(Date.now() / 500) * 20;
         ctx.fillRect(obstacle.x, obstacle.y + obstacle.yOffset, obstacle.width, obstacle.height);
@@ -181,11 +323,11 @@ function drawObstacle(obstacle) {
 }
 
 function drawGround() {
-    ctx.fillStyle = '#2d5016';
+    const worldConfig = worldConfigs[currentWorld];
+    ctx.fillStyle = worldConfig.groundColor;
     ctx.fillRect(0, ground.y, ground.width, ground.height);
     
-    // Draw line pattern
-    ctx.strokeStyle = '#4a7c1e';
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 2;
     for (let i = 0; i < canvas.width; i += 40) {
         ctx.beginPath();
@@ -196,11 +338,9 @@ function drawGround() {
 }
 
 function updateHeart() {
-    // Apply gravity
     heart.velocityY += heart.gravity;
     heart.y += heart.velocityY;
     
-    // Ground collision
     if (heart.y + heart.height >= ground.y) {
         heart.y = ground.y - heart.height;
         heart.velocityY = 0;
@@ -277,17 +417,16 @@ function updateObstacles() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= obstacles[i].speed;
         
-        // Remove obstacle if off screen
         if (obstacles[i].x + obstacles[i].width < 0) {
             obstacles.splice(i, 1);
             score += 10;
             obstaclesInLevel += 1;
             updateScore();
+            playObstacleSound();
             checkLevelUp();
         }
     }
     
-    // Spawn new obstacles
     obstacleCounter++;
     if (obstacleCounter > obstacleSpawnRate) {
         spawnObstacle();
@@ -300,8 +439,10 @@ function checkLevelUp() {
         currentLevel++;
         obstacles = [];
         obstacleSpawnRate = levelConfigs[currentLevel].spawnRate;
-        speed = levelConfigs[currentLevel].speed;
+        baseSpeed = levelConfigs[currentLevel].speed;
+        speed = baseSpeed;
         updateLevelInfo();
+        playLevelMusic();
         
         document.getElementById('gameStatus').textContent = `✨ ${levelConfigs[currentLevel].name}!`;
         setTimeout(() => {
@@ -317,7 +458,6 @@ function checkCollisions() {
             obstacleY += obstacle.yOffset || (Math.sin(Date.now() / 500) * 20);
         }
         
-        // Simple AABB collision detection
         if (heart.x < obstacle.x + obstacle.width &&
             heart.x + heart.width > obstacle.x &&
             heart.y < obstacleY + obstacle.height &&
@@ -347,31 +487,28 @@ function endGame() {
         document.getElementById('highScore').textContent = highScore;
     }
     
-    document.getElementById('gameStatus').textContent = `Game Over! Nivel: ${currentLevel} | Score: ${score} | High Score: ${highScore}`;
+    document.getElementById('gameStatus').textContent = `¡Game Over! ${playerName} - Nivel: ${currentLevel} | Puntos: ${score}`;
     document.getElementById('restartBtn').style.display = 'inline-block';
 }
 
 function gameLoop() {
-    // Get current level config for background
+    const worldConfig = worldConfigs[currentWorld];
     const config = levelConfigs[currentLevel];
     
-    // Clear canvas with level color
-    ctx.fillStyle = config.backgroundColor;
+    ctx.fillStyle = worldConfig.bgColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw level indicator
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.font = 'bold 16px Arial';
-    ctx.fillText(`${config.name}`, 10, 30);
+    ctx.fillText(`${worldConfig.name} - ${config.name}`, 10, 30);
+    ctx.fillText(`🎮 ${playerName}`, 10, 55);
     
     if (gameRunning) {
-        // Update
         updateHeart();
         updateObstacles();
         checkCollisions();
     }
     
-    // Draw
     drawGround();
     
     for (let obstacle of obstacles) {
@@ -385,5 +522,8 @@ function gameLoop() {
     }
 }
 
-// Initialize high score display
+// Initialize
 document.getElementById('highScore').textContent = highScore;
+document.querySelectorAll('.char-btn')[0].classList.add('selected');
+document.querySelectorAll('.world-btn')[0].classList.add('selected');
+document.querySelectorAll('.level-btn')[0].classList.add('selected');
