@@ -7,34 +7,74 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <!-- MENÚ PRINCIPAL -->
+    <div id="mainMenu" class="menu-screen">
+        <div class="menu-content">
             <h1>❤️ HEART DASH</h1>
-            <div class="score-board">
-                <div class="score">Score: <span id="score">0</span></div>
-                <div class="high-score">High Score: <span id="highScore">0</span></div>
-                <div class="speed">Speed: <span id="speed">1.0</span>x</div>
+            <p class="menu-subtitle">Elige tu aventura</p>
+            
+            <!-- Seleccionar Personaje -->
+            <div class="menu-section">
+                <h3>🎮 Selecciona tu Personaje:</h3>
+                <div class="character-selector">
+                    <button class="char-btn" data-char="heart">❤️ Corazón</button>
+                    <button class="char-btn" data-char="star">⭐ Estrella</button>
+                    <button class="char-btn" data-char="diamond">💎 Diamante</button>
+                    <button class="char-btn" data-char="cube">🟦 Cubo</button>
+                    <button class="char-btn" data-char="rocket">🚀 Cohete</button>
+                </div>
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre" class="player-name-input" maxlength="15">
             </div>
-        </div>
 
-        <div class="game-container">
-            <canvas id="gameCanvas" width="800" height="400"></canvas>
-        </div>
+            <!-- Seleccionar Mundo -->
+            <div class="menu-section">
+                <h3>🌍 Selecciona tu Mundo:</h3>
+                <div class="world-selector">
+                    <button class="world-btn" data-world="1">🌳 Mundo 1: Bosque</button>
+                    <button class="world-btn" data-world="2">🔥 Mundo 2: Volcán</button>
+                    <button class="world-btn" data-world="3">❄️ Mundo 3: Hielo</button>
+                </div>
+            </div>
 
-        <div class="controls">
-            <p id="gameStatus">Press SPACE or CLICK to start</p>
-            <button id="startBtn" class="btn-start">START GAME</button>
-            <button id="restartBtn" class="btn-restart" style="display: none;">RESTART</button>
-        </div>
+            <!-- Seleccionar Nivel -->
+            <div class="menu-section">
+                <h3>📊 Selecciona tu Nivel:</h3>
+                <div class="level-selector">
+                    <button class="level-btn" data-level="1">🟩 Nivel 1: Iniciante</button>
+                    <button class="level-btn" data-level="2">🟨 Nivel 2: Intermedio</button>
+                    <button class="level-btn" data-level="3">🟧 Nivel 3: Desafiante</button>
+                    <button class="level-btn" data-level="4">🔴 Nivel 4: Experto</button>
+                    <button class="level-btn" data-level="5">⚫ Nivel 5: Imposible</button>
+                </div>
+            </div>
 
-        <div class="instructions">
-            <h3>How to Play:</h3>
-            <ul>
-                <li>Press <strong>SPACE</strong> or <strong>CLICK</strong> to make the heart jump</li>
-                <li>Avoid the obstacles (grey boxes and spikes)</li>
-                <li>Speed increases as you progress</li>
-                <li>The game gets harder over time!</li>
-            </ul>
+            <button id="playBtn" class="btn-play">JUGAR</button>
+        </div>
+    </div>
+
+    <!-- JUEGO -->
+    <div id="gameScreen" class="game-screen" style="display: none;">
+        <div class="container">
+            <div class="header">
+                <h1 id="gameTitle">❤️ HEART DASH</h1>
+                <div class="score-board">
+                    <div class="player-info">Jugador: <span id="playerDisplay">Player</span></div>
+                    <div class="score">Puntos: <span id="score">0</span></div>
+                    <div class="high-score">Máximo: <span id="highScore">0</span></div>
+                    <div class="world-info">Mundo: <span id="worldDisplay">1</span></div>
+                </div>
+            </div>
+
+            <div class="game-container">
+                <canvas id="gameCanvas" width="800" height="400"></canvas>
+            </div>
+
+            <div class="controls">
+                <p id="gameStatus">Press SPACE or CLICK to start</p>
+                <button id="startBtn" class="btn-start">INICIAR JUEGO</button>
+                <button id="restartBtn" class="btn-restart" style="display: none;">REINTENTAR</button>
+                <button id="menuBtn" class="btn-menu">MENÚ</button>
+            </div>
         </div>
     </div>
 
