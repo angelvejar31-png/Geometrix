@@ -3,77 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heart Dash - Geometry Dash Game</title>
+    <title>GEOMETRIX - Cyberpunk Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- MENÚ PRINCIPAL -->
     <div id="mainMenu" class="menu-screen">
         <div class="menu-content">
-            <h1>❤️ HEART DASH</h1>
-            <p class="menu-subtitle">Elige tu aventura</p>
+            <div class="neon-title">
+                <h1>⚡ GEOMETRIX ⚡</h1>
+                <div class="glitch" data-text="CYBERPUNK">CYBERPUNK</div>
+            </div>
             
             <!-- Seleccionar Personaje -->
             <div class="menu-section">
-                <h3>🎮 Selecciona tu Personaje:</h3>
+                <h3>🎮 ELIGE TU AVATAR:</h3>
                 <div class="character-selector">
-                    <button class="char-btn" data-char="heart">❤️ Corazón</button>
-                    <button class="char-btn" data-char="star">⭐ Estrella</button>
-                    <button class="char-btn" data-char="diamond">💎 Diamante</button>
-                    <button class="char-btn" data-char="cube">🟦 Cubo</button>
-                    <button class="char-btn" data-char="rocket">🚀 Cohete</button>
+                    <button class="char-btn" data-char="heart">❤️ CORAZÓN</button>
+                    <button class="char-btn" data-char="star">⭐ ESTRELLA</button>
+                    <button class="char-btn" data-char="diamond">💎 DIAMANTE</button>
+                    <button class="char-btn" data-char="cube">🟦 CUBO</button>
+                    <button class="char-btn" data-char="rocket">🚀 COHETE</button>
                 </div>
-                <input type="text" id="playerName" placeholder="Ingresa tu nombre" class="player-name-input" maxlength="15">
+                <input type="text" id="playerName" placeholder="INGRESA TU TAG" class="player-name-input" maxlength="15">
             </div>
 
             <!-- Seleccionar Mundo -->
             <div class="menu-section">
-                <h3>🌍 Selecciona tu Mundo:</h3>
+                <h3>🌐 SELECCIONA TU MUNDO:</h3>
                 <div class="world-selector">
-                    <button class="world-btn" data-world="1">🌳 Mundo 1: Bosque</button>
-                    <button class="world-btn" data-world="2">🔥 Mundo 2: Volcán</button>
-                    <button class="world-btn" data-world="3">❄️ Mundo 3: Hielo</button>
+                    <button class="world-btn" data-world="1">🌳 BOSQUE DIGITAL</button>
+                    <button class="world-btn" data-world="2">🔥 VOLCÁN SINTÉTICO</button>
+                    <button class="world-btn" data-world="3">❄️ TUNDRA CUÁNTICA</button>
                 </div>
             </div>
 
             <!-- Seleccionar Nivel -->
             <div class="menu-section">
-                <h3>📊 Selecciona tu Nivel:</h3>
+                <h3>📊 DESBLOQUEADOS:</h3>
                 <div class="level-selector">
-                    <button class="level-btn" data-level="1">🟩 Nivel 1: Iniciante</button>
-                    <button class="level-btn" data-level="2">🟨 Nivel 2: Intermedio</button>
-                    <button class="level-btn" data-level="3">🟧 Nivel 3: Desafiante</button>
-                    <button class="level-btn" data-level="4">🔴 Nivel 4: Experto</button>
-                    <button class="level-btn" data-level="5">⚫ Nivel 5: Imposible</button>
+                    <button class="level-btn" data-level="1">🟩 LVL 1</button>
+                    <button class="level-btn" data-level="2" id="level2-btn" disabled>🟨 LVL 2</button>
+                    <button class="level-btn" data-level="3" id="level3-btn" disabled>🟧 LVL 3</button>
+                    <button class="level-btn" data-level="4" id="level4-btn" disabled>🔴 LVL 4</button>
+                    <button class="level-btn" data-level="5" id="level5-btn" disabled>⚫ LVL 5</button>
                 </div>
             </div>
 
-            <button id="playBtn" class="btn-play">JUGAR</button>
+            <button id="playBtn" class="btn-play">▶ INICIAR SESIÓN</button>
         </div>
     </div>
 
     <!-- JUEGO -->
     <div id="gameScreen" class="game-screen" style="display: none;">
-        <div class="container">
-            <div class="header">
-                <h1 id="gameTitle">❤️ HEART DASH</h1>
-                <div class="score-board">
-                    <div class="player-info">Jugador: <span id="playerDisplay">Player</span></div>
-                    <div class="score">Puntos: <span id="score">0</span></div>
-                    <div class="high-score">Máximo: <span id="highScore">0</span></div>
-                    <div class="world-info">Mundo: <span id="worldDisplay">1</span></div>
+        <div class="game-container-main">
+            <div class="hud">
+                <div class="hud-left">
+                    <div class="player-tag">👤 <span id="playerDisplay">Player</span></div>
+                    <div class="level-info">📊 LVL <span id="levelDisplay">1</span></div>
+                </div>
+                <div class="hud-center">
+                    <div class="score-display">PUNTOS: <span id="score">0</span></div>
+                </div>
+                <div class="hud-right">
+                    <div class="world-tag">🌐 MUNDO <span id="worldDisplay">1</span></div>
+                    <div class="high-score">MAX: <span id="highScore">0</span></div>
                 </div>
             </div>
 
-            <div class="game-container">
+            <div class="game-area">
                 <canvas id="gameCanvas" width="800" height="400"></canvas>
+                <div class="scanlines"></div>
             </div>
 
-            <div class="controls">
-                <p id="gameStatus">Press SPACE or CLICK to start</p>
-                <button id="startBtn" class="btn-start">INICIAR JUEGO</button>
-                <button id="restartBtn" class="btn-restart" style="display: none;">REINTENTAR</button>
-                <button id="menuBtn" class="btn-menu">MENÚ</button>
+            <div class="game-info">
+                <p id="gameStatus">PRESIONA ESPACIO PARA COMENZAR</p>
+                <div class="controls-text">
+                    <span>MANTÉN ESPACIO PARA SALTAR MÁS ALTO</span>
+                </div>
+            </div>
+
+            <div class="game-buttons">
+                <button id="startBtn" class="btn-game">▶ JUGAR</button>
+                <button id="restartBtn" class="btn-game" style="display: none;">🔄 REINTENTAR</button>
+                <button id="menuBtn" class="btn-menu">🏠 MENÚ</button>
             </div>
         </div>
     </div>
